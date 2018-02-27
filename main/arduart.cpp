@@ -3,24 +3,28 @@
 
 void ArduArt::move_me(Dir dir) {
 	switch (dir) {
-		case UP:
-			if (coords[1] - 1 >= 0) {
-				coords[1]--;
+		case Dir::Up:
+			// The compiler picks up on this anyway,
+			// but it's better to check for this and
+			// avoid the subtraction alltogether
+			if (cursor.y > 0) {
+				cursor.y--;
 			}
 			break;
-		case DOWN:
-			if (coords[1] + 1 < GRID_HEIGHT) {
-				coords[1]++;
+		case Dir::Down:
+			if (cursor.y + 1 < getGridHeight()) {
+				cursor.y++;
 			}
 			break;
-		case LEFT:
-			if (coords[0] - 1 >= 0) {
-				coords[0]--;
+		case Dir::Left:
+			// Same as above
+			if (cursor.x > 0) {
+				cursor.x--;
 			}
 			break;
-		case RIGHT:
-			if (coords[0] + 1 < GRID_WIDTH) {
-				coords[0]++;
+		case Dir::Right:
+			if (cursor.x + 1 < getGridWidth()) {
+				cursor.x++;
 			}
 			break;
 		default:
@@ -29,15 +33,21 @@ void ArduArt::move_me(Dir dir) {
 }
 
 void ArduArt::draw_cursor() {
-	arduboy.drawRect(coords[0] * TILE_SIZE, coords[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE, WHITE);
+	// Swapped out for the new functions
+	// Could have been as easily replaced with the variables
+	// (Again, the compiler had already realised this,
+	// so this is more of a clarity fix than a way to save memory)
+	arduboy.drawRect(getGridX(), getGridY(), tileSize, tileSize, WHITE);
 }
 
 void ArduArt::draw_art() {
-	for (int i = 0; i < points_size; i++) {
-		int px = EEPROM.read(EEPROM_STORAGE_SPACE_START + i);
-		int py = EEPROM.read(EEPROM_STORAGE_SPACE_START + 512 + i);
-		if (px != -1 && py != -1) {
-			arduboy.fillRect(px * TILE_SIZE, py * TILE_SIZE, TILE_SIZE, TILE_SIZE, WHITE);
+	// size_t is actually uint16_t, which is actually unsigned int
+	// This is better for portability, and possibly more efficient
+	for (size_t i = 0; i < points_size; i++) {
+		
+		Point2 point = points[i];		
+		if (point.x != -1 && point.y != -1) {
+			arduboy.fillRect(point.x * tileSize, point.y * tileSize, tileSize, tileSize, WHITE);
 		}
 	}
 }
